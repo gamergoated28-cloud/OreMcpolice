@@ -1,0 +1,50 @@
+name: OreMC Police - Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Show Repository Files
+        run: |
+          pwd
+          ls -la
+          find . -maxdepth 5 -name build.gradle -o -name build.gradle.kts
+
+      - name: Build Plugin
+        shell: bash
+        run: |
+          if [ -f "OreMCPolice/build.gradle" ]; then
+            cd OreMCPolice
+          elif [ -f "build.gradle" ]; then
+            :
+          else
+            echo "ERROR: build.gradle not found!"
+            exit 1
+          fi
+
+          gradle clean build --no-daemon
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: OreMCPolice-JAR
+          path: |
+            OreMCPolice/build/libs/*.jar
+            build/libs/*.jar
+          if-no-files-found: error
